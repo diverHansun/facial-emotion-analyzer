@@ -1,0 +1,27 @@
+# 基础依赖
+numpy>=1.23.0
+pandas>=1.5.0
+
+# 表情检测
+py-feat>=0.3.6
+
+# 图像处理
+opencv-python>=4.5.5
+
+# 可视化
+matplotlib>=3.7.0
+seaborn>=0.12.2
+plotly>=5.15.0
+
+# PDF 生成
+reportlab>=3.6.12
+
+# 降维聚类
+scikit-learn>=1.2.2
+umap-learn>=0.5.4
+
+# 命令行参数（标准库中已有，不用安装）
+# argparse
+
+# 兼容中文字体（需要提供 simhei.ttf，手动放在项目根目录即可）
+# simhei.ttf is assumed to be included manually

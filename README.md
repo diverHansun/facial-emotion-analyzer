@@ -1,0 +1,122 @@
+
+# 🎭 Facial Emotion Analyzer（面部情绪分析与可视化工具）
+
+本项目基于 [Py-Feat](https://github.com/cosanlab/py-feat) 实现视频中微表情的自动分析，生成包括 **情绪趋势图、饼状图、柱状图、雷达图、热力图、聚类图** 等分析图，并整合为一份专业的 PDF 报告，适用于教学展示、科研辅助与人脸情绪可视化任务。
+
+---
+
+## 📁 项目结构
+
+```
+facial-analysis/
+├── scripts/                 # 主程序逻辑文件（main、图表绘制等）
+├── videos/                  # 存放待分析视频
+├── outputs/                 # 存放输出的 CSV 数据，PDF 报告，可交互HTML
+├── test_result/             # 存放中间调试数据
+├── requirements.txt         # 项目依赖
+└── README.md                # 项目说明文件
+```
+
+---
+
+## 📦 安装依赖
+
+请使用 Python 3.8+ 环境，建议创建虚拟环境后安装：
+
+```bash
+pip install -r requirements.txt
+```
+
+---
+
+## 🚀 使用方法
+
+### Step 1: 打开命令行，进入项目主目录：
+
+**Windows：**
+```bash
+cd "C:\Users\你的用户名\Downloads\facial-emotion-analyzer"
+```
+
+**Mac/Linux：**
+```bash
+cd ~/Downloads/facial-emotion-analyzer
+```
+
+### Step 2: 在项目主文件夹facial-analysis下运行主程序，传入视频路径和参数
+
+```bash
+python -m scripts.emotion_analysis.main videos/xxx.mp4 --process_sampling_rate x --fps x
+```
+
+## ⚙️ 命令行参数说明
+
+### ✅ 必填参数：
+
+| 参数 | 说明 |
+|------|------|
+| `video_path` | 要分析的视频路径，如 `videos/test5.mp4` |
+| `--process_sampling_rate` | 每隔多少帧进行一次检测（默认 5） |
+| `--fps` | 视频帧率，用于计算秒数轴（默认 30） |
+
+### ✅ 可选参数（默认值可省略）：
+
+| 参数                        | 默认值 | 说明 |
+|---------------------------|--------|------|
+| `--start_frame`           | None | 指定分析起始帧（自动对齐最近采样帧） |
+| `--end_frame`             | None | 指定分析结束帧 |
+| `--output_csv`            | outputs/facial_expression_analysis.csv | 分析结果的 CSV 路径 |
+| `--output_pdf`            | outputs/emotion_report.pdf | 最终生成的 PDF 报告路径 |
+| `--method`                | tsne | 降维方法（可选 `tsne` 或 `umap`） |
+| `--cluster_sampling_rate` | 5 | 聚类降维采样间隔 |
+| `--perplexity`            | 30.0 | t-SNE 的超参数 |
+| `--n_neighbors`           | None | UMAP 的邻居数（可选，默认自动） |
+
+---
+
+##  输出内容
+
+运行后将在 `outputs/` 文件夹中生成：
+
+- `facial_expression_analysis.csv`：包含每一帧的情绪分析结果；
+- `emotion_report.pdf`：包含以下图表的综合情绪分析报告：
+
+| 图表类型 | 内容 |
+|----------|------|
+| 📈 折线图 | 情绪强度随帧变化趋势 |
+| 🥧 饼状图 | 主导情绪比例（指定帧区间） |
+| 📊 柱状图 | 主导情绪出现频数 |
+| 🔥 热力图 | 情绪强度二维分布图 |
+| 🕸️ 雷达图 | 情绪平均强度雷达图 |
+| 🧠 聚类图 | 降维聚类结果（t-SNE / UMAP） |
+
+---
+
+## 📌 注意事项
+
+- 视频建议长度为 **2-5 分钟**，过短不具分析价值，过长处理耗时较大；
+- 请确保传入的 `--fps`（帧率）与视频实际帧率一致，否则图表时间轴会偏差；
+- 默认人脸采样间隔为 **每 5 帧处理一次**，可根据视频长度和帧率灵活调整 `--process_sampling_rate`；
+- 可交互式动态折线图（`emotion_dynamic.html`）不会出现在 PDF 报告中，生成后将自动在浏览器打开，供用户交互查看，也可在outputs文件夹中找到；
+- 报告中使用中文字体标题，需提供 `simhei.ttf` 字体文件并放置于项目根目录；
+- 所有中间临时图片和图表自动清除，无需手动删除；
+- 项目支持命令行参数自定义输出路径和处理参数，适合批量处理和集成脚本使用；
+
+---
+
+## 📚 引用项目
+
+项目参考并基于：
+- [py-feat](https://github.com/cosanlab/py-feat)
+- [deepface](https://github.com/serengil/deepface)
+- [matplotlib / seaborn / reportlab / sklearn 等]
+
+---
+
+## 📮 联系与反馈
+
+如在使用过程中遇到问题或有功能建议，欢迎提交 [Issue](https://github.com/diverHansun/facial-emotion-analyzer/issues)。
+
+---
+
+✅ **Enjoy your AI-powered facial expression analyzer!**

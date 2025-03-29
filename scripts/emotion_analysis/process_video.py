@@ -1,0 +1,71 @@
+import cv2
+import os
+import sys
+import logging
+import tempfile
+import pandas as pd
+from feat import Detector
+def process_video(video_path, process_sampling_rate, output_csv):
+    """
+    读取视频，按照采样率处理每一帧，利用 Py-Feat 检测面部表情，
+    将检测结果存储到 DataFrame 中，并保存为 CSV 文件。
+    使用“临时文件”方式将帧传给 detect_image。
+    """
+    logging.info("初始化检测器...")
+    detector = Detector()
+
+    logging.info(f"正在打开视频文件：{video_path}")
+    cap = cv2.VideoCapture(video_path)
+    if not cap.isOpened():
+        logging.error("无法打开视频，请检查文件路径或格式是否正确。")
+        sys.exit(1)
+
+    frame_count = 0
+    results = []
+
+    while True:
+        ret, frame = cap.read()
+        if not ret:
+            break  # 视频读取结束
+
+        frame_count += 1
+        # 只在指定采样率的帧上进行分析
+        if frame_count % process_sampling_rate == 0:
+            try:
+                # 创建一个临时文件来保存当前帧
+                with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as tmp_file:
+                    temp_path = tmp_file.name
+
+                # 将当前帧写入临时文件
+                cv2.imwrite(temp_path, frame)
+
+                # 传临时文件路径给 py-feat 进行检测
+                features = detector.detect_image(temp_path)
+
+                # 如果返回非空 DataFrame，说明检测到了人脸
+                if isinstance(features, pd.DataFrame) and not features.empty:
+                    # 记录当前帧号
+                    features["frame"] = frame_count
+                    results.append(features)
+                    logging.info(f"成功处理帧：{frame_count}")
+                else:
+                    logging.warning(f"帧 {frame_count} 未检测到人脸。")
+
+                # 检测完毕后，删除临时文件
+                os.remove(temp_path)
+
+            except Exception as e:
+                logging.error(f"处理帧 {frame_count} 时出错：{e}")
+
+    cap.release()
+    logging.info("视频处理完成。")
+
+    if not results:
+        logging.error("没有获得任何检测结果，请确认视频内容是否包含人脸。")
+        sys.exit(1)
+
+    # 合并所有帧的检测结果
+    df = pd.concat(results, ignore_index=True)
+    df.to_csv(output_csv, index=False)
+    logging.info(f"检测结果已保存到：{output_csv}")
+    return df
