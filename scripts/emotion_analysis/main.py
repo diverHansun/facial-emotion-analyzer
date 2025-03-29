@@ -76,9 +76,8 @@ def main():
     print("\n🎉 分析完成，图表已展示，报告已生成。程序退出。\n")
 if __name__ == "__main__":
     main()
+
 #命令行进入facial-analysis文件夹 (修改为你的路径)
 #cd "D:\basic software\pycharm\code\pythonProject1\facial-analysis"
 #命令行参数传入: 1.修改main函数位置以及要检测的视频文件名称 2.采样率(每x帧分析一次) 3.视频每秒的帧数(根据视频的帧数进行调整！！)
-#python -m scripts.emotion_analysis.main videos/test5.mp4 --process_sampling_rate 6 --fps 24
-#python -m scripts.emotion_analysis.main videos/test2.mp4 --process_sampling_rate 6 --fps 24
-#python -m scripts.emotion_analysis.main videos/surprise.mp4 --process_sampling_rate 10 --fps 30
+#python -m scripts.emotion_analysis.main videos/name.mp4 --process_sampling_rate 10 --fps 30

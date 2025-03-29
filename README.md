@@ -19,6 +19,39 @@ facial-analysis/
 
 ---
 
+## 📥 克隆项目到本地（初学者）
+
+如果你不熟悉 Git 或命令行操作，可以按照以下步骤将本项目下载到你的电脑：
+
+### Step 0: 安装 Git（若尚未安装）
+
+- **Windows 用户**：访问 [Git 官网](https://git-scm.com/download/win)，下载安装包并默认安装即可；
+- **Mac 用户**：打开终端，输入 `git` 后按提示安装；
+- **Linux 用户**：在终端中运行如下命令（以 Ubuntu 为例）：
+
+```bash
+sudo apt update
+sudo apt install git
+```
+
+### Step 1: 打开命令行或终端，选择你想保存项目的位置
+
+例如：将项目放在“下载”目录：
+
+```bash
+cd ~/Downloads
+```
+
+### Step 2: 克隆本项目
+
+```bash
+git clone https://github.com/diverHansun/facial-emotion-analyzer.git
+```
+
+执行后将自动下载整个项目文件夹，名为 `facial-emotion-analyzer`，你可以进入该目录继续后续操作。
+
+---
+
 ## 📦 安装依赖
 
 请使用 Python 3.8+ 环境，建议创建虚拟环境后安装：

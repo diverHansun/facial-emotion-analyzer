@@ -3,7 +3,7 @@ def parse_arguments():
     """解析命令行参数"""
     parser = argparse.ArgumentParser(description="基于 Py-Feat 的视频面部表情分析工具（生成报告）")
     parser.add_argument("video_path", help="待分析视频文件的路径")
-    parser.add_argument("--process_sampling_rate", type=int, default=5, help="每隔多少帧进行一次情绪检测（默认 5 帧）")
+    parser.add_argument("--process_sampling_rate", type=int, default=10, help="每隔多少帧进行一次情绪检测（默认 10 帧）")
     parser.add_argument("--output_csv", default="outputs/facial_expression_analysis.csv", help="CSV 文件名称")
     parser.add_argument("--start_frame", type=int, default=None, help="饼图分析的起始帧")
     parser.add_argument("--end_frame", type=int, default=None, help="饼图分析的结束帧")

@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-def plot_emotion_line(df, fps,max_points=2000,save_path=None):
+def plot_emotion_line(df, fps,max_points=5400,save_path=None):
 
     # 若传入的 fps 无效，则使用默认值30
     if not fps or fps <= 0:

@@ -72,11 +72,11 @@ def plot_emotion_clusters(df, fps, start_frame=None, end_frame=None, method=None
 
     if cluster_sampling_rate is None:
         # 用户没传，就自动判断要不要采样（适配低配电脑）
-        if n_total <= 400:
+        if n_total <= 450:
             logging.info(f"数据量较小（{n_total}条），直接绘制所有点。")
             df_sampled = df_range
         else:
-            max_points = 400  # 自定义一个“最多点数”限制，适配你的机器
+            max_points = 540  # 自定义一个“最多点数”限制，适配你的机器
             interval = max(1, n_total // max_points)
             logging.info(f"数据量较大（{n_total}条），每隔 {interval} 行采样（最多绘制约 {max_points} 个点）")
             df_sampled = df_range.iloc[::interval]
