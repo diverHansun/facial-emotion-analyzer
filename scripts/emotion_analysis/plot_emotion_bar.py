@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 def plot_emotion_bar(df, start_frame=None, end_frame=None, save_path=None):
     """
-    绘制指定帧范围内主导情绪占比的柱状图，可保存为图片或展示。
+    绘制指定帧范围内主导情绪占比的柱状图，支持多张人脸分图输出。
     """
 
     emotions = ["anger", "happiness", "sadness", "surprise", "fear", "disgust", "neutral"]
@@ -23,7 +23,6 @@ def plot_emotion_bar(df, start_frame=None, end_frame=None, save_path=None):
         logging.warning("未在数据中找到情绪列，无法绘制柱状图。")
         return
 
-    # 获取有效帧并自动对齐帧范围
     valid_frames = df["frame"].sort_values().unique()
     if start_frame is None:
         start_frame = valid_frames[0]
@@ -42,33 +41,45 @@ def plot_emotion_bar(df, start_frame=None, end_frame=None, save_path=None):
         return
     end_frame = valid_ends[-1]
 
-    # 筛选帧范围内的数据
-    df_range = df[(df["frame"] >= start_frame) & (df["frame"] <= end_frame)]
-    if df_range.empty:
+    df_range_all = df[(df["frame"] >= start_frame) & (df["frame"] <= end_frame)]
+    if df_range_all.empty:
         logging.warning(f"帧区间 [{start_frame}, {end_frame}] 内无数据。")
         return
 
-    df_range["dominant_emotion"] = df_range[available_emotions].idxmax(axis=1)
-    emotion_counts = df_range["dominant_emotion"].value_counts()
+    face_ids = df_range_all["face_id"].unique() if "face_id" in df.columns else [None]
 
-    # 开始绘制柱状图
-    colors = [emotion_colors.get(e, "black") for e in emotion_counts.index]
+    for fid in face_ids:
+        if fid is not None:
+            df_range = df_range_all[df_range_all["face_id"] == fid].copy()
+            fid_str = str(int(fid))
+            title_suffix = f" - Face ID {fid_str}"
+        else:
+            df_range = df_range_all.copy()
+            fid_str = ""
+            title_suffix = ""
 
-    plt.figure(figsize=(10, 6))
-    bars = plt.bar(emotion_counts.index, emotion_counts.values, color=colors)
+        if df_range.empty:
+            continue
 
-    # 添加数值标签
-    for bar in bars:
-        height = bar.get_height()
-        plt.text(bar.get_x() + bar.get_width()/2, height + 1, f"{int(height)}", ha='center', fontsize=11)
+        df_range["dominant_emotion"] = df_range[available_emotions].idxmax(axis=1)
+        emotion_counts = df_range["dominant_emotion"].value_counts()
+        colors = [emotion_colors.get(e, "black") for e in emotion_counts.index]
 
-    plt.title("指定帧范围内主导情绪频数柱状图", fontsize=14)
-    plt.ylabel("出现次数")
-    plt.grid(axis='y', linestyle='--', alpha=0.7)
+        plt.figure(figsize=(10, 6))
+        bars = plt.bar(emotion_counts.index, emotion_counts.values, color=colors)
 
-    if save_path:
-        plt.savefig(save_path, bbox_inches='tight')
-        logging.info(f"✅ 情绪柱状图已保存至 {save_path}")
-        plt.close()
-    else:
-        plt.show()
+        for bar in bars:
+            height = bar.get_height()
+            plt.text(bar.get_x() + bar.get_width()/2, height + 1, f"{int(height)}", ha='center', fontsize=11)
+
+        plt.title(f"指定帧范围内主导情绪频数柱状图{title_suffix}", fontsize=14)
+        plt.ylabel("出现次数")
+        plt.grid(axis='y', linestyle='--', alpha=0.7)
+
+        if save_path:
+            specific_path = save_path.replace(".png", f"_face{fid_str}.png") if fid is not None else save_path
+            plt.savefig(specific_path, bbox_inches='tight')
+            logging.info(f"✅ 情绪柱状图已保存至 {specific_path}")
+            plt.close()
+        else:
+            plt.show()

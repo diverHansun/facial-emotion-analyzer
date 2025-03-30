@@ -2,22 +2,21 @@ import logging
 import numpy as np
 import matplotlib.pyplot as plt
 
-
-
-def plot_emotion_heatmap(df,fps,save_path= None):
-
-
-
+def plot_emotion_heatmap(df, fps, save_path=None):
     # 若传入的 fps 无效，则使用默认值30
     if not fps or fps <= 0:
         logging.warning("fps 参数，使用默认值 30。")
         fps = 30
+
     """
-    绘制情绪强度热力图，展示不同情绪随时间帧的强度分布，
-    同时横轴显示帧数及对应的秒数（帧/30），
-    其中每种情绪的标签采用预定义颜色。
+    绘制情绪强度热力图，展示不同情绪随时间帧的强度分布，支持多张人脸自动分图。
+
+    参数：
+    - df: DataFrame，包含 "frame" 和情绪列（可选含 "face_id"）
+    - fps: 视频帧率
+    - save_path: 图片保存路径，若为 None 则直接展示
     """
-    # 定义情绪及对应颜色（参照原代码）
+
     emotion_colors = {
         "anger": "red",
         "happiness": "gold",
@@ -33,50 +32,57 @@ def plot_emotion_heatmap(df,fps,save_path= None):
         logging.warning("未找到情绪列，跳过热力图绘制。")
         return
 
-    # 填充缺失值
     df = df.ffill().bfill()
 
-    # 提取各情绪数据，并保持顺序（每行对应一种情绪）
-    heatmap_data = df[available_emotions].to_numpy().T
+    face_ids = df["face_id"].unique() if "face_id" in df.columns else [None]
 
-    # 使用实际帧号作为横坐标
-    frame_min = df["frame"].min()
-    frame_max = df["frame"].max()
-    extent = [frame_min, frame_max, 0, len(available_emotions)]  # [x_min, x_max, y_min, y_max]
+    for fid in face_ids:
+        if fid is not None:
+            df_sub = df[df["face_id"] == fid].copy()
+            fid_str = str(int(fid))
+            title_suffix = f" - Face ID {fid_str}"
+        else:
+            df_sub = df.copy()
+            fid_str = ""
+            title_suffix = ""
 
-    # 设置中文显示及负号正常显示
-    plt.rcParams['font.sans-serif'] = ['SimHei']
-    plt.rcParams['axes.unicode_minus'] = False
+        if df_sub.empty:
+            continue
 
-    fig, ax = plt.subplots(figsize=(15, 5))
-    im = ax.imshow(heatmap_data, aspect="auto", cmap="YlOrRd",
-                   interpolation="nearest", extent=extent, origin='lower')
-    cbar = plt.colorbar(im, ax=ax)
-    cbar.set_label("情绪强度")
+        heatmap_data = df_sub[available_emotions].to_numpy().T
+        frame_min = df_sub["frame"].min()
+        frame_max = df_sub["frame"].max()
+        extent = [frame_min, frame_max, 0, len(available_emotions)]
 
-    # 设置 y 轴：每行在中间位置显示情绪名称，并用对应颜色标记
-    ax.set_yticks(np.arange(0.5, len(available_emotions), 1))
-    ax.set_yticklabels(available_emotions, fontsize=10)
-    for tick_label in ax.get_yticklabels():
-        emotion = tick_label.get_text()
-        tick_label.set_color(emotion_colors.get(emotion, "black"))
+        plt.rcParams['font.sans-serif'] = ['SimHei']
+        plt.rcParams['axes.unicode_minus'] = False
 
-    # 设置 x 轴刻度（帧数）
-    num_ticks = 10
-    xticks = np.linspace(frame_min, frame_max, num_ticks, dtype=int)
-    ax.set_xticks(xticks)
-    ax.set_xlabel("帧数", fontsize=12)
-    ax.set_title("情绪强度热力图", fontsize=14)
+        fig, ax = plt.subplots(figsize=(15, 5))
+        im = ax.imshow(heatmap_data, aspect="auto", cmap="YlOrRd",
+                       interpolation="nearest", extent=extent, origin='lower')
+        cbar = plt.colorbar(im, ax=ax)
+        cbar.set_label("情绪强度")
 
-    # 添加次要 x 轴：秒数（转换公式：秒 = 帧数 / 30）
-    secax = ax.secondary_xaxis('top', functions=(lambda x: x / fps, lambda x: x * fps))
-    secax.set_xlabel("秒", fontsize=12)
+        ax.set_yticks(np.arange(0.5, len(available_emotions), 1))
+        ax.set_yticklabels(available_emotions, fontsize=10)
+        for tick_label in ax.get_yticklabels():
+            emotion = tick_label.get_text()
+            tick_label.set_color(emotion_colors.get(emotion, "black"))
 
-    plt.tight_layout()
-    plt.tight_layout()
-    if save_path:
-        plt.savefig(save_path, bbox_inches='tight')
-        logging.info(f"✅ 热力图已保存至 {save_path}")
-        plt.close()
-    else:
-        plt.show()
+        num_ticks = 10
+        xticks = np.linspace(frame_min, frame_max, num_ticks, dtype=int)
+        ax.set_xticks(xticks)
+        ax.set_xlabel("帧数", fontsize=12)
+        ax.set_title(f"情绪强度热力图{title_suffix}", fontsize=14)
+
+        secax = ax.secondary_xaxis('top', functions=(lambda x: x / fps, lambda x: x * fps))
+        secax.set_xlabel("秒", fontsize=12)
+
+        plt.tight_layout()
+        if save_path:
+            specific_path = save_path.replace(".png", f"_face{fid_str}.png") if fid is not None else save_path
+            plt.savefig(specific_path, bbox_inches='tight')
+            logging.info(f"✅ 热力图已保存至 {specific_path}")
+            plt.close()
+        else:
+            plt.show()

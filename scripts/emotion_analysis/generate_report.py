@@ -15,39 +15,25 @@ from .plot_emotion_radar import plot_emotion_radar
 from .plot_emotion_clusters import plot_emotion_clusters
 from .parse_arguments import parse_arguments
 
-
-
-
-
-
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s [%(levelname)s] %(message)s',
     handlers=[logging.StreamHandler()]
 )
 
-
 def register_chinese_font():
-    font_path = "simhei.ttf"  # 确保这个文件在项目根目录或指定路径
+    font_path = "simhei.ttf"
     try:
         pdfmetrics.registerFont(TTFont('SimHei', font_path))
         logging.info("中文字体 SimHei 注册成功")
     except Exception as e:
         logging.error(f"中文字体注册失败: {e}")
 
-
-
 register_chinese_font()
 
-def generate_report(df,args,output_path="outputs/emotion_report.pdf"):
-    """
-    生成包含多种情绪分析图的 PDF 报告
-    :param df: 表情分析 DataFrame，必须包含 frame 与情绪列
-    :param output_path: 输出 PDF 文件名，默认 "emotion_report.pdf"
-    """
+def generate_report(df, args, output_path="outputs/emotion_report.pdf"):
     logging.info("开始生成情绪分析报告 PDF...")
 
-    # 自动判断 fps（如果有 second 列）
     if "second" in df.columns:
         total_frame = df["frame"].iloc[-1] - df["frame"].iloc[0]
         total_time = df["second"].iloc[-1] - df["second"].iloc[0]
@@ -55,61 +41,16 @@ def generate_report(df,args,output_path="outputs/emotion_report.pdf"):
     else:
         fps = 30
 
-    # 创建临时目录保存图片
     temp_dir = "temp_report_images"
     os.makedirs(temp_dir, exist_ok=True)
 
-    # 图片文件路径定义
-    emotion_line_path = os.path.join(temp_dir, "emotion_line.png")
-    emotion_pie_path = os.path.join(temp_dir, "emotion_pie.png")
-    emotion_bar_path = os.path.join(temp_dir, "emotion_bar.png")
-    emotion_heatmap_path = os.path.join(temp_dir, "emotion_heatmap.png")
-    emotion_radar_path = os.path.join(temp_dir, "emotion_radar.png")
-    emotion_cluster_path = os.path.join(temp_dir, "emotion_clusters.png")
+    plot_emotion_line(df=df, fps=fps, save_path=os.path.join(temp_dir, "emotion_line.png"))
+    plot_emotion_pie(df=df, start_frame=args.start_frame, end_frame=args.end_frame, save_path=os.path.join(temp_dir, "emotion_pie.png"))
+    plot_emotion_bar(df=df, start_frame=args.start_frame, end_frame=args.end_frame, save_path=os.path.join(temp_dir, "emotion_bar.png"))
+    plot_emotion_heatmap(df=df, fps=fps, save_path=os.path.join(temp_dir, "emotion_heatmap.png"))
+    plot_emotion_radar(df=df, fps=fps, start_frame=args.start_frame, end_frame=args.end_frame, save_path=os.path.join(temp_dir, "emotion_radar.png"))
+    plot_emotion_clusters(df=df, fps=fps, method=args.method, perplexity=args.perplexity, n_neighbors=args.n_neighbors, cluster_sampling_rate=args.cluster_sampling_rate, start_frame=args.start_frame, end_frame=args.end_frame, save_path=os.path.join(temp_dir, "emotion_clusters.png"))
 
-
-    # --- 保存图片版本的绘图 ---
-    args = parse_arguments()
-
-    plot_emotion_line(
-        df=df,
-        fps=fps,
-        save_path=emotion_line_path
-    )
-
-    plot_emotion_pie(
-        df=df,
-        save_path=emotion_pie_path
-    )
-    plot_emotion_bar(
-        df=df,
-        start_frame=args.start_frame,
-        end_frame=args.end_frame,
-        save_path=emotion_bar_path
-    )
-    plot_emotion_heatmap(
-        df=df,
-        fps=fps,
-        save_path=emotion_heatmap_path
-    )
-
-    plot_emotion_radar(
-        df=df,
-        fps=fps,
-        save_path=emotion_radar_path
-    )
-
-    plot_emotion_clusters(
-        df=df,
-        fps=fps,
-        method=args.method,
-        perplexity=args.perplexity,
-        n_neighbors=args.n_neighbors,
-        cluster_sampling_rate=args.cluster_sampling_rate,
-        save_path=emotion_cluster_path
-    )
-
-    # 创建 PDF 对象
     c = canvas.Canvas(output_path, pagesize=A4)
     width, height = A4
 
@@ -124,32 +65,39 @@ def generate_report(df,args,output_path="outputs/emotion_report.pdf"):
         c.setFont("SimHei", 16)
         c.drawCentredString(width / 2, height - 50, title)
         img = ImageReader(image_path)
-        c.drawImage(img, 50, 100, width=width - 50, height=height - 50, preserveAspectRatio=True, mask='auto')
+        c.drawImage(img, 50, 100, width=width - 100, height=height - 150, preserveAspectRatio=True, mask='auto')
         c.showPage()
 
-    def safe_draw_image(image_path, title):
-        if os.path.exists(image_path):
-            draw_image_page(image_path, title)
+    def safe_draw_images(prefix, title):
+        base_path = os.path.join(temp_dir, prefix)
+        added = False
+        if os.path.exists(base_path):
+            draw_image_page(base_path, title)
+            added = True
         else:
-            logging.warning(f"❌ 报告中缺失图像: {title} -> {image_path}")
+            # 多人脸图检查（如 emotion_pie_face0.png ...）
+            i = 1
+            while True:
+                face_id_str = str(int(i))  # 统一为整数字符串
+                path_i = base_path.replace(".png", f"_face{face_id_str}.png")
+                if os.path.exists(path_i):
+                    draw_image_page(path_i, f"{title} - Face {face_id_str}")
+                    added = True
+                    i += 1
+                else:
+                    break
+        if not added:
+            logging.warning(f"❌ 报告中缺失图像: {title} -> {base_path}*")
 
-
-    # 添加封面和图像页
     draw_title_page()
-    safe_draw_image(emotion_line_path, "情绪趋势折线图")
-    safe_draw_image(emotion_pie_path, "主导情绪饼图")
-    safe_draw_image(emotion_bar_path, "主导情绪柱状图")
-    safe_draw_image(emotion_heatmap_path, "情绪强度热力图")
-    safe_draw_image(emotion_radar_path,"情绪雷达图")
-    safe_draw_image(emotion_cluster_path,"情绪空间分布聚类图")
+    safe_draw_images("emotion_line.png", "情绪趋势折线图")
+    safe_draw_images("emotion_pie.png", "主导情绪饼图")
+    safe_draw_images("emotion_bar.png", "主导情绪柱状图")
+    safe_draw_images("emotion_heatmap.png", "情绪强度热力图")
+    safe_draw_images("emotion_radar.png", "情绪雷达图")
+    safe_draw_images("emotion_clusters.png", "情绪空间分布聚类图")
 
-
-    # 保存 PDF
     c.save()
     print("✅ PDF 报告生成完毕！")
     logging.info(f"PDF 报告已保存至：{output_path}")
-
-    # 删除临时图片目录
     shutil.rmtree(temp_dir)
-
-

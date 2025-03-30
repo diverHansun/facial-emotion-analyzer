@@ -5,11 +5,12 @@ import logging
 import tempfile
 import pandas as pd
 from feat import Detector
-def process_video(video_path, process_sampling_rate, output_csv):
+
+def process_video(video_path, process_sampling_rate, output_csv, multi_face=False):
     """
     读取视频，按照采样率处理每一帧，利用 Py-Feat 检测面部表情，
     将检测结果存储到 DataFrame 中，并保存为 CSV 文件。
-    使用“临时文件”方式将帧传给 detect_image。
+    支持多张人脸分析（可选）。
     """
     logging.info("初始化检测器...")
     detector = Detector()
@@ -39,17 +40,27 @@ def process_video(video_path, process_sampling_rate, output_csv):
                 # 将当前帧写入临时文件
                 cv2.imwrite(temp_path, frame)
 
-                # 传临时文件路径给 py-feat 进行检测
-                features = detector.detect_image(temp_path)
-
-                # 如果返回非空 DataFrame，说明检测到了人脸
-                if isinstance(features, pd.DataFrame) and not features.empty:
-                    # 记录当前帧号
-                    features["frame"] = frame_count
-                    results.append(features)
-                    logging.info(f"成功处理帧：{frame_count}")
+                if multi_face:
+                    # 多人脸处理：返回多个人脸特征
+                    features = detector.detect_image(temp_path, return_multiple=True)
+                    if isinstance(features, pd.DataFrame) and not features.empty:
+                        for i in range(len(features)):
+                            features.at[i, "frame"] = frame_count
+                            features.at[i, "face_id"] = i+1  # 同一帧内的人脸编号，从1开始
+                        results.append(features)
+                        logging.info(f"帧 {frame_count}：检测到 {len(features)} 张人脸")
+                    else:
+                        logging.warning(f"帧 {frame_count} 未检测到人脸。")
                 else:
-                    logging.warning(f"帧 {frame_count} 未检测到人脸。")
+                    # 单人脸处理
+                    features = detector.detect_image(temp_path)
+                    if isinstance(features, pd.DataFrame) and not features.empty:
+                        features["frame"] = frame_count
+                        features["face_id"] = 1  # 默认人脸编号
+                        results.append(features)
+                        logging.info(f"成功处理帧：{frame_count}")
+                    else:
+                        logging.warning(f"帧 {frame_count} 未检测到人脸。")
 
                 # 检测完毕后，删除临时文件
                 os.remove(temp_path)
