@@ -12,7 +12,7 @@ def parse_arguments():
     parser.add_argument("--method", type=str, default="tsne", choices=["tsne", "umap"], help="降维方法：tsne或umap（默认tsne）")
     parser.add_argument("--cluster_sampling_rate", type=int, default=5, help="用于聚类图绘制阶段的帧采样率")
     parser.add_argument("--perplexity", type=float, default=30.0, help="t-SNE的perplexity参数（默认30）")
-    parser.add_argument("--n_neighbors", type=int, default=None, help="UMAP 降维中使用的邻居数量，默认为自动推导")
+    parser.add_argument("--n_neighbors", type=int, default=15, help="UMAP 降维中使用的邻居数量，默认为自动推导")
     parser.add_argument("--output_pdf", type=str, default="outputs/emotion_report.pdf", help="输出 PDF 报告的路径（默认 outputs/emotion_report.pdf）")
     parser.add_argument("--multi_face", action="store_true", help="是否启用多张人脸分析模式（默认关闭，仅分析每帧中置信度最高的人脸）")
     return parser.parse_args()

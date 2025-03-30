@@ -94,16 +94,17 @@ python -m scripts.emotion_analysis.main videos/xxx.mp4 --process_sampling_rate x
 
 ### ✅ 可选参数（默认值可省略）：
 
-| 参数                        | 默认值 | 说明 |
-|---------------------------|--------|------|
-| `--start_frame`           | None | 指定分析起始帧（自动对齐最近采样帧） |
-| `--end_frame`             | None | 指定分析结束帧 |
-| `--output_csv`            | outputs/facial_expression_analysis.csv | 分析结果的 CSV 路径 |
-| `--output_pdf`            | outputs/emotion_report.pdf | 最终生成的 PDF 报告路径 |
-| `--method`                | tsne | 降维方法（可选 `tsne` 或 `umap`） |
-| `--cluster_sampling_rate` | 5 | 聚类降维采样间隔 |
-| `--perplexity`            | 30.0 | t-SNE 的超参数 |
-| `--n_neighbors`           | None | UMAP 的邻居数（可选，默认自动） |
+| 参数           | 默认值                                    | 说明                                          |
+|--------------|----------------------------------------|---------------------------------------------|
+| `--multi_face` | False                                  | 是否需要分析视频内的多张人脸，若（默认）False则每检测帧仅分析检测到的最显著一张人脸 |
+| `--start_frame` | None                                   | 指定分析起始帧（自动对齐最近采样帧）                          |
+| `--end_frame` | None                                   | 指定分析结束帧                                     |
+| `--output_csv` | outputs/facial_expression_analysis.csv | 分析结果的 CSV 路径                                |
+| `--output_pdf` | outputs/emotion_report.pdf             | 最终生成的 PDF 报告路径                              |
+| `--method`   | tsne                                   | 降维方法（可选 `tsne` 或 `umap`）                    |
+| `--cluster_sampling_rate` | 自动（无传参时）或5（命令行设定默认）                    | 聚类图设置聚类降维采样间隔                               |
+| `--perplexity` | 自动（无传参时）或30（命令行默认）                     | 聚类图选择t-SNE降维方法的超参数                          |
+| `--n_neighbors` | 自动（无传参时）或15（命令行默认）                     | 聚类图选择UMAP降维方法的邻居数（可选，默认自动）                  |
 
 ---
 
@@ -112,6 +113,7 @@ python -m scripts.emotion_analysis.main videos/xxx.mp4 --process_sampling_rate x
 运行后将在 `outputs/` 文件夹中生成：
 
 - `facial_expression_analysis.csv`：包含每一帧的情绪分析结果；
+- `emotion_dynamic_face.html`：可交互式折线图；
 - `emotion_report.pdf`：包含以下图表的综合情绪分析报告：
 
 | 图表类型 | 内容 |
@@ -127,7 +129,7 @@ python -m scripts.emotion_analysis.main videos/xxx.mp4 --process_sampling_rate x
 
 ## 📌 注意事项
 
-- 默认每帧仅分析检测到的最显著一张人脸。如需分析每帧中所有人脸，请添加 `--multi_face` 参数，输出中将包含 `face_id` 字段，图表与 PDF 报告也将逐人脸展示；
+- 默认每检测帧仅分析检测到的最显著一张人脸。如需分析每帧中所有人脸，请添加 `--multi_face` 参数，输出中将包含 `face_id` 字段，图表与 PDF 报告也将逐人脸展示；
 - 视频建议长度为 **2-5 分钟**，过短不具分析价值，过长处理耗时较大；
 - 请确保传入的 `--fps`（帧率）与视频实际帧率一致，否则图表时间轴会偏差；
 - 默认人脸采样间隔为 **每 5 帧处理一次**，可根据视频长度和帧率灵活调整 `--process_sampling_rate`；
