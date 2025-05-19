@@ -77,11 +77,11 @@ def rel_path(*paths):
 
 def main():
     # 参考图片（已知身份）和待检测图片列表
-    ref_img_path = rel_path("pic", "amma.jpg")
+    ref_img_path = rel_path("pic", "1.jpg")
     image_paths = [
-        rel_path("pic", "musk.jpg"),
-        rel_path("pic", "tatum.jpg"),
-        rel_path("pic", "brown.jpg")
+        rel_path("pic", "2.jpg"),
+        rel_path("pic", "3.jpg"),
+        rel_path("pic", "4.jpg")
     ]
 
     # 处理参考图片

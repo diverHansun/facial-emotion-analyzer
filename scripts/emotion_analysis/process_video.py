@@ -14,6 +14,10 @@ def process_video(video_path, process_sampling_rate, output_csv, multi_face=Fals
     """
     logging.info("初始化检测器...")
     detector = Detector()
+    
+    # 输出当前使用的设备信息
+    device = detector.device
+    logging.info(f"当前使用的设备: {device}")
 
     logging.info(f"正在打开视频文件：{video_path}")
     cap = cv2.VideoCapture(video_path)

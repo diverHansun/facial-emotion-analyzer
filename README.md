@@ -112,7 +112,7 @@ python -m scripts.emotion_analysis.main videos/xxx.mp4 --process_sampling_rate x
 
 运行后将在 `outputs/` 文件夹中生成：
 
-- `facial_expression_analysis.csv`：包含每一帧的情绪分析结果；
+- `facial_expression_analysis.csv`：包含采样到的每帧的情绪分析结果；
 - `emotion_dynamic_face.html`：可交互式折线图；
 - `emotion_report.pdf`：包含以下图表的综合情绪分析报告：
 
